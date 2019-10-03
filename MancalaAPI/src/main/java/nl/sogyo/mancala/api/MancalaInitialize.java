@@ -49,5 +49,4 @@ public class MancalaInitialize {
 		
 		return Response.status(200).entity(output).build();
 	}
-	
 }

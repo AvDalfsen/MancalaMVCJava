@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Mancala</title>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    </head>
+    <body>
+
+        <div id="app">
+            <start-screen
+                v-if="!gameStarted"
+                v-on:players-confirmed="startGame">
+            </start-screen>
+            
+            <game-screen
+                v-else
+                v-bind:game-state="gameState">
+            </game-screen>
+        </div>
+
+        <script>
+
+            /**
+             * The screen shown before the game starts, prompting players to enter their names.
+             */
+            Vue.component('start-screen', {
+                data() {
+                    return {
+                        playerOne: undefined,
+                        playerTwo: undefined,
+                        errorMessage: "",
+                    }
+                },
+                template: `
+                    <div>
+                        <input
+                            placeholder="Player 1 name"
+                            v-model="playerOne" />
+
+                        <input
+                            placeholder="Player 2 name"
+                            v-model="playerTwo" />
+
+                        {{ errorMessage }}
+
+                        <button v-on:click="confirmPlayers">Start</button>
+                    </div>
+                `,
+                methods: {
+                    confirmPlayers() {
+                        if (!this.playerOne) {
+                            this.errorMessage = "Player 1 name is required";
+                            return;
+                        }
+
+                        if (!this.playerTwo) {
+                            this.errorMessage = "Player 2 name is required";
+                            return;
+                        }
+
+                        this.errorMessage = "";
+
+                        this.$emit('players-confirmed', this.playerOne, this.playerTwo);
+                    }
+                }
+            });
+
+            Vue.component('game-screen', {
+                props: [ 'gameState' ],
+                template: `
+                    <div>
+                        {{ gameState.players[0].name }} vs. {{ gameState.players[1].name }}
+
+                        <!-- Your game board (based on the game state) goes here -->
+                    </div>
+                `
+            });
+        
+            const app = new Vue({
+                el: '#app',
+
+                data: {
+                    gameState: undefined,
+                },
+
+                computed: {
+                    gameStarted() {
+                        return this.gameState != undefined;
+                    }
+                },
+
+                methods: {
+                    async startGame(playerOne, playerTwo) {
+                        const response = await fetch('api/players', {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ nameplayer1: playerOne , nameplayer2: playerTwo })
+                        });
+                        const gameState = await response.json();
+
+                        this.gameState = gameState;
+                    }
+                }
+            });
+        
+        </script>
+
+    </body>
+</html>

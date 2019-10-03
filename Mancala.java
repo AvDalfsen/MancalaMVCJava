@@ -21,7 +21,7 @@ public interface Mancala {
 	void setPlayerName(String name, int playerIndex) throws IllegalStateException;
 	
 	/**
-	 * Method indicating if the specified player has the next turn of not.
+	 * Method indicating if the specified player has the next turn or not.
 	 * 
 	 * @param playerIndex Index of the player, 1 for the first player and 2 for the second player.
 	 * @return True if the specified player has the next turn, otherwise False.

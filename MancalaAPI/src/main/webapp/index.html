@@ -14,7 +14,9 @@
             
             <game-screen
                 v-else
-                v-bind:game-state="gameState">
+                v-bind:game-state="gameState"
+                v-on:move-it="makeMove"
+                v-on:restart-game="startNewGame">
             </game-screen>
         </div>
 
@@ -68,12 +70,33 @@
             Vue.component('game-screen', {
                 props: [ 'gameState' ],
                 template: `
-                    <div>
+                    <div v-if="gameState.gameStatus.endOfGame === 'false'">
                         {{ gameState.players[0].name }} vs. {{ gameState.players[1].name }}
 
-                        <!-- Your game board (based on the game state) goes here -->
+                        <ul v-for="player in gameState.players">
+                            <button
+                                v-for="pit in player.pits"
+                                v-bind:disabled="player.hasTurn==='false'"
+                                v-on:click="$emit('move-it', pit.index)">
+                                {{ pit.index }} has {{ pit.nr_of_stones }}
+                            </button>
+                        </ul>
                     </div>
-                `
+
+                    <div v-else>
+                    <p>
+                    The final step has been made.
+                    Player {{ gameState.gameStatus.winner }} has won the game!
+                    </p>
+                    
+                    <button v-on:click="newGame">Start a new game</button>
+                    </div>
+                `,
+                methods: {
+                    newGame() {
+                        this.$emit('restart-game')
+                    }
+                }
             });
         
             const app = new Vue({
@@ -102,6 +125,21 @@
                         const gameState = await response.json();
 
                         this.gameState = gameState;
+                    },
+                    async makeMove(index) {
+                        const response = await fetch('api/play/'+index, {
+                            method: 'PUT',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                        });
+                        const gameState = await response.json();
+
+                        this.gameState = gameState;
+                    },
+                    startNewGame: function(){
+                        this.gameState = undefined;
                     }
                 }
             });
